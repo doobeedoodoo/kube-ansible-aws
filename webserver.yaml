@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Create a simple webserver on an EC2 instance in AWS."
+Resources:
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: "t2.micro"
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      KeyName: "__KEYNAME__"
+      ImageId: "ami-01d025118d8e760db"
+      UserData: !Base64 |
+        #!/bin/bash
+        yum -y update
+        yum -y install httpd
+        service httpd start        
+        echo "Hello from EC2!" > /var/www/html/index.html
+  InstanceSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Enable SSH access via port 22"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: "__ALLOWED_IP_ADDRESS__"
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: 0.0.0.0/0
