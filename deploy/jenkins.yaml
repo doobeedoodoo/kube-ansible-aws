@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Instances to host the application."
+Description: "Set up a Jenkins server."
 Resources:
   EC2Instance:
     Type: "AWS::EC2::Instance"
@@ -8,11 +8,16 @@ Resources:
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       KeyName: "makatas"
-      ImageId: "ami-088ff0e3bde7b3fdf"
+      ImageId: "ami-020d764f9372da231"
       UserData: !Base64 |
         #!/bin/bash
         yum -y update
-
+        yum install java-1.8.0-openjdk
+        #update-alternatives --config java
+        sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+        sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+        sudo yum install jenkins -y
+        sudo service jenkins start
   InstanceSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -21,7 +26,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: "22"
           ToPort: "22"
-          CidrIp: "__ALLOWED_IP_ADDRESS__"
+          CidrIp: "203.87.124.146/32"
         - IpProtocol: tcp
           FromPort: "80"
           ToPort: "80"

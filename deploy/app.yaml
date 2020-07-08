@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Set up a Jenkins server."
+Description: "Instances to host the application."
 Resources:
   EC2Instance:
     Type: "AWS::EC2::Instance"
@@ -8,16 +8,19 @@ Resources:
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       KeyName: "makatas"
-      ImageId: "ami-020d764f9372da231"
+      ImageId: "ami-088ff0e3bde7b3fdf"
       UserData: !Base64 |
         #!/bin/bash
         yum -y update
-        #yum install java-1.8.0-openjdk
-        #update-alternatives --config java
-        sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
-        sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
-        sudo yum install jenkins -y
-        sudo service jenkins start
+        yum install git -y
+        sudo amazon-linux-extras install docker -y
+        sudo service docker start
+        sudo usermod -a -G docker ec2-user
+        git clone https://github.com/doobeedoodoo/kube-ansible-aws.git
+        cd kube-ansible-aws/app/src/
+        docker build -t amazing_app .
+        docker run -d -p 80:5000 amazing_app:latest
+
   InstanceSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -35,3 +38,8 @@ Resources:
           FromPort: "8080"
           ToPort: "8080"
           CidrIp: 0.0.0.0/0
+
+Outputs:
+  PublicIp:
+    Description: EC2's public IP
+    Value: !GetAtt EC2Instance.PublicIp
